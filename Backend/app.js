@@ -4,6 +4,10 @@ dotenv.config();
 const express = require('express');
 const app = express();
 
+const connectDB = require('./db/db');
+
+connectDB();
+
 const cors = require('cors');
 app.use(cors()); // Allow Cross-Origin Resource Sharing
 
