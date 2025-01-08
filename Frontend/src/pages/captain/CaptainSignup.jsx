@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { CaptainDataContext } from "../../context/CaptainContext";
+import axios from "axios";
 
 const CaptainSignup = () => {
   const navigate = useNavigate();
@@ -14,6 +16,8 @@ const CaptainSignup = () => {
   const [vehiclePlate, setVehiclePlate] = useState("");
   const [vehicleCapacity, setVehicleCapacity] = useState("");
   const [vehicleType, setVehicleType] = useState("");
+
+  const { captain, setCaptain } = React.useContext(CaptainDataContext);
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -33,7 +37,7 @@ const CaptainSignup = () => {
     };
 
     const response = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/captains/register`,
+      `${import.meta.env.VITE_BASE_URL}/captain/register`,
       captainData
     );
 
