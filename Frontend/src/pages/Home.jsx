@@ -47,6 +47,12 @@ const Home = () => {
     e.preventDefault();
   };
 
+  socket.on("ride-confirmed", ride => {
+    setVehicleFound(false)
+    setWaitingForDriver(true)
+    setRide(ride)
+  });
+
   const handlePickupChange = async (e) => {
     setPickup(e.target.value);
     try {
