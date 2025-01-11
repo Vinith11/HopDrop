@@ -30,7 +30,6 @@ module.exports.createRide = async (req, res) => {
       2000
     );
 
-    console.log(captainsInRadius);
 
     ride.otp = "";
 
@@ -108,7 +107,6 @@ module.exports.startRide = async (req, res) => {
       captain: req.captain,
     });
 
-    console.log(ride);
 
     sendMessageToSocketId(ride.user.socketId, {
       event: "ride-started",
