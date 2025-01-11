@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import "remixicon/fonts/remixicon.css";
@@ -8,6 +8,10 @@ import ConfirmRide from "../components/ConfirmRide";
 import LookingForDriver from "../components/LookingForDriver";
 import WaitingForDriver from "../components/WaitingForDriver";
 import axios from "axios";
+import { SocketContext } from "../context/SocketContext";
+import { UserDataContext } from "../context/UserContext";
+import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
 
 const Home = () => {
   const [pickup, setPickup] = useState("");
@@ -29,6 +33,15 @@ const Home = () => {
   const [fare, setFare] = useState({});
   const [vehicleType, setVehicleType] = useState(null);
   const [ride, setRide] = useState(null);
+
+  const navigate = useNavigate();
+
+  const { socket } = useContext(SocketContext);
+  const { user } = useContext(UserDataContext);
+
+  useEffect(() => {
+    socket.emit("join", { userType: "user", userId: user._id });
+  }, [user]);
 
   const submitHandler = (e) => {
     e.preventDefault();
@@ -117,7 +130,7 @@ const Home = () => {
         });
       } else {
         gsap.to(confirmRidePanelRef.current, {
-          transform: "translateY(100%)",
+          transform: "translateY(150%)",
         });
       }
     },
@@ -132,7 +145,7 @@ const Home = () => {
         });
       } else {
         gsap.to(vehicleFoundRef.current, {
-          transform: "translateY(100%)",
+          transform: "translateY(150%)",
         });
       }
     },
@@ -147,7 +160,7 @@ const Home = () => {
         });
       } else {
         gsap.to(waitingForDriverRef.current, {
-          transform: "translateY(100%)",
+          transform: "translateY(150%)",
         });
       }
     },

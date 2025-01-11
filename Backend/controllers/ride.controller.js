@@ -4,6 +4,7 @@ const mapService = require("../services/maps.service");
 const { sendMessageToSocketId } = require("../socket");
 const rideModel = require("../models/ride.model");
 
+
 module.exports.createRide = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -26,8 +27,10 @@ module.exports.createRide = async (req, res) => {
     const captainsInRadius = await mapService.getCaptainsInTheRadius(
       pickupCoordinates.ltd,
       pickupCoordinates.lng,
-      2
+      10
     );
+
+    console.log(captainsInRadius);
 
     ride.otp = "";
 
