@@ -7,7 +7,21 @@ const FinishRide = (props) => {
   const navigate = useNavigate();
 
   async function endRide() {
-    navigate("/captain-home");
+    const response = await axios.post(
+      `${import.meta.env.VITE_BASE_URL}/rides/end-ride`,
+      {
+        rideId: props.ride._id,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      navigate("/captain-home");
+    }
   }
 
   return (
@@ -39,7 +53,9 @@ const FinishRide = (props) => {
           <div className="flex items-center gap-5 p-3 border-b-2">
             <i className="ri-map-pin-user-fill"></i>
             <div>
-              <h3 className="text-lg font-medium">562/11-A</h3>
+              <h3 className="text-lg font-medium">
+                {props.ride?.pickup.split(",")[0]}
+              </h3>
               <p className="text-sm -mt-1 text-gray-600">
                 {props.ride?.pickup}
               </p>
@@ -48,7 +64,9 @@ const FinishRide = (props) => {
           <div className="flex items-center gap-5 p-3 border-b-2">
             <i className="text-lg ri-map-pin-2-fill"></i>
             <div>
-              <h3 className="text-lg font-medium">562/11-A</h3>
+              <h3 className="text-lg font-medium">
+                {props.ride?.destination.split(",")[0]}
+              </h3>
               <p className="text-sm -mt-1 text-gray-600">
                 {props.ride?.destination}
               </p>

@@ -1,26 +1,20 @@
-import React from "react";
+import React, { useContext, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom"; // Added useLocation
 import { useNavigate } from "react-router-dom";
-import LiveTracking from "./LiveTracking";
-
-const sampleRide = {
-  captain: {
-    fullname: {
-      firstname: "John",
-      lastname: "Doe",
-    },
-    vehicle: {
-      plate: "XYZ 1234",
-    },
-  },
-  destination: "123 Main St, Springfield",
-  fare: 250,
-};
+import LiveTracking from "../components/LiveTracking";
+import { SocketContext } from "../context/SocketContext";
 
 const Riding = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const ride = sampleRide;
+  const { ride } = location.state || { ride: null };
+  const { socket } = useContext(SocketContext);
+
+  const handlePaymentClick = () => {
+    navigate("/home");
+  };
+  
+  socket.on("ride-ended");
 
   return (
     <div className="h-screen">
@@ -56,7 +50,9 @@ const Riding = () => {
             <div className="flex items-center gap-5 p-3 border-b-2">
               <i className="text-lg ri-map-pin-2-fill"></i>
               <div>
-                <h3 className="text-lg font-medium">562/11-A</h3>
+                <h3 className="text-lg font-medium">
+                  {ride.destination.split(",")[0]}
+                </h3>
                 <p className="text-sm -mt-1 text-gray-600">
                   {ride.destination}
                 </p>
@@ -71,7 +67,10 @@ const Riding = () => {
             </div>
           </div>
         </div>
-        <button className="w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg">
+        <button
+          className="w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg"
+          onClick={handlePaymentClick}
+        >
           Make a Payment
         </button>
       </div>

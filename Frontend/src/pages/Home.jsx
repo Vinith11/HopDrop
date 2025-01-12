@@ -12,6 +12,7 @@ import { SocketContext } from "../context/SocketContext";
 import { UserDataContext } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
+import LiveTracking from "../components/LiveTracking";
 
 const Home = () => {
   const [pickup, setPickup] = useState("");
@@ -47,10 +48,15 @@ const Home = () => {
     e.preventDefault();
   };
 
-  socket.on("ride-confirmed", ride => {
-    setVehicleFound(false)
-    setWaitingForDriver(true)
-    setRide(ride)
+  socket.on("ride-confirmed", (ride) => {
+    setVehicleFound(false);
+    setWaitingForDriver(true);
+    setRide(ride);
+  });
+
+  socket.on("ride-started", (ride) => {
+    setWaitingForDriver(false);
+    navigate("/riding", { state: { ride } });
   });
 
   const handlePickupChange = async (e) => {
@@ -214,13 +220,7 @@ const Home = () => {
         alt=""
       />
       <div className="h-screen w-screen">
-        {/* image for temporary use  */}
-        <img
-          className="w-full h-full object-cover"
-          src="https://images.unsplash.com/photo-1556740737-768f5f9b9e2b"
-          alt=""
-        />
-        {/*<LiveTracking />*/}
+        <LiveTracking />
       </div>
 
       <div className=" flex flex-col justify-end h-screen absolute top-0 w-full">
