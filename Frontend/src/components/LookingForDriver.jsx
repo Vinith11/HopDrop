@@ -8,34 +8,6 @@ const LookingForDriver = (props) => {
     const navigate = useNavigate();
     const { socket } = useContext(SocketContext);
 
-    const handleCancelRide = async () => {
-        if (!props.ride?._id) {
-            console.error('No ride ID available');
-            return;
-        }
-
-        try {
-            await axios.post(
-                `${import.meta.env.VITE_BASE_URL}/rides/cancel`,
-                { rideId: props.ride._id },
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                }
-            );
-
-            // Emit socket event to notify captain
-            socket.emit("ride-cancelled", { rideId: props.ride._id });
-            
-            // Close the panel and navigate back to home
-            props.setVehicleFound(false);
-            navigate('/home');
-        } catch (error) {
-            console.error('Error cancelling ride:', error);
-            alert('Failed to cancel ride. Please try again.');
-        }
-    };
 
     return (
         <div>
@@ -69,13 +41,6 @@ const LookingForDriver = (props) => {
                         </div>
                     </div>
                 </div>
-
-                <button
-                    onClick={handleCancelRide}
-                    className="w-full p-4 bg-red-600 text-white rounded-lg font-semibold mt-4"
-                >
-                    Cancel Ride
-                </button>
             </div>
         </div>
     )

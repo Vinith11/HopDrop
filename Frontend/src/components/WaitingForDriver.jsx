@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 const WaitingForDriver = (props) => {
     if (!props.ride) {
-        return null; // Or a loading state
+        return null;
     }
 
     return (
@@ -12,6 +12,20 @@ const WaitingForDriver = (props) => {
                 props.setWaitingForDriver(false)
             }}><i className="text-3xl text-gray-200 ri-arrow-down-wide-line"></i></h5>
             <h3 className='text-2xl font-semibold mb-5'>Driver is on the way</h3>
+
+            {props.ride.otp && (
+                <div className="mb-6 p-4 bg-yellow-50 border-2 border-yellow-400 rounded-lg">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="text-lg font-bold text-yellow-800">Your OTP</h3>
+                            <p className="text-sm text-yellow-700">Share with driver to start ride</p>
+                        </div>
+                        <div className="text-3xl font-bold font-mono text-yellow-800 bg-yellow-100 px-4 py-2 rounded-lg">
+                            {props.ride.otp}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className='flex items-center justify-between p-4 bg-yellow-400 rounded-lg mt-4'>
                 <div className='flex items-center gap-3 '>
@@ -58,7 +72,7 @@ const WaitingForDriver = (props) => {
                         <i className="ri-currency-line"></i>
                         <div>
                             <h3 className='text-lg font-medium'>₹{props.ride.fare || '0'}</h3>
-                            <p className='text-sm -mt-1 text-gray-600'>Cash Cash</p>
+                            <p className='text-sm -mt-1 text-gray-600'>Cash Payment</p>
                         </div>
                     </div>
                 </div>

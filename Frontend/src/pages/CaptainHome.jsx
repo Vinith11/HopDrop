@@ -30,12 +30,7 @@ const CaptainHome = () => {
       setRidePopupPanel(true);
     });
 
-    socket.on("ride-cancelled", (data) => {
-      if (ride && ride._id === data.rideId) {
-        setRidePopupPanel(false);
-        setRide(null);
-      }
-    });
+
 
     const updateLocation = () => {
       if (navigator.geolocation) {
