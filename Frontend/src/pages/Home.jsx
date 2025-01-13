@@ -243,7 +243,7 @@ const Home = () => {
   return (
     <div className="h-screen relative overflow-hidden">
       <img
-        className="w-36 absolute left-5 top-5"
+        className="w-32 absolute left-5 top-5"
         src={logo}
         alt="HopDrop"
       />
