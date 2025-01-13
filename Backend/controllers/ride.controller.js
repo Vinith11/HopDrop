@@ -20,32 +20,36 @@ module.exports.createRide = async (req, res) => {
       destination,
       vehicleType,
     });
-    res.status(201).json(ride);
 
+    // Get pickup coordinates for finding nearby captains
     const pickupCoordinates = await mapService.getAddressCoordinate(pickup);
-
+    
+    // Find captains in radius
     const captainsInRadius = await mapService.getCaptainsInTheRadius(
       pickupCoordinates.ltd,
       pickupCoordinates.lng,
       2000
     );
 
+    console.log("Found captains in radius:", captainsInRadius.length);
 
-    ride.otp = "";
-
+    // Populate user details before sending
     const rideWithUser = await rideModel
       .findOne({ _id: ride._id })
       .populate("user");
 
-    captainsInRadius.map((captain) => {
+    // Notify each captain
+    captainsInRadius.forEach(captain => {
+      console.log("Sending ride to captain:", captain.socketId);
       sendMessageToSocketId(captain.socketId, {
         event: "new-ride",
-        data: rideWithUser,
+        data: rideWithUser
       });
-    
     });
+
+    res.status(201).json(ride);
   } catch (err) {
-    console.log(err);
+    console.error("Create ride error:", err);
     return res.status(500).json({ message: err.message });
   }
 };
@@ -208,4 +212,37 @@ module.exports.handlePayment = async (req, res) => {
       message: err.message || 'Error processing payment'
     });
   }
+};
+
+module.exports.cancelRide = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { rideId } = req.body;
+
+    try {
+        const ride = await rideModel.findOneAndUpdate(
+            { _id: rideId },
+            { status: 'cancelled' },
+            { new: true }
+        ).populate('captain');
+
+        if (!ride) {
+            throw new Error('Ride not found');
+        }
+
+        // If a captain was assigned, notify them
+        if (ride.captain && ride.captain.socketId) {
+            sendMessageToSocketId(ride.captain.socketId, {
+                event: "ride-cancelled",
+                data: { rideId }
+            });
+        }
+
+        return res.status(200).json({ message: 'Ride cancelled successfully' });
+    } catch (err) {
+        return res.status(500).json({ message: err.message });
+    }
 };

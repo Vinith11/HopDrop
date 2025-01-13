@@ -24,6 +24,19 @@ const CaptainHome = () => {
   useEffect(() => {
     socket.emit("join", { userType: "captain", userId: captain._id });
 
+    socket.on("new-ride", (data) => {
+      console.log("New ride received:", data);
+      setRide(data);
+      setRidePopupPanel(true);
+    });
+
+    socket.on("ride-cancelled", (data) => {
+      if (ride && ride._id === data.rideId) {
+        setRidePopupPanel(false);
+        setRide(null);
+      }
+    });
+
     const updateLocation = () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
@@ -40,13 +53,13 @@ const CaptainHome = () => {
 
     const locationInterval = setInterval(updateLocation, 10000);
     updateLocation();
-  }, []);
 
-  socket.on("new-ride", (data) => {
-    console.log(data);
-    setRide(data);
-    setRidePopupPanel(true);
-  });
+    return () => {
+      clearInterval(locationInterval);
+      socket.off("new-ride");
+      socket.off("ride-cancelled");
+    };
+  }, [socket, captain._id, ride]);
 
   async function confirmRide() {
     const response = await axios.post(

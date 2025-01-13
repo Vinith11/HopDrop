@@ -46,6 +46,12 @@ router.post('/payment',
     rideController.handlePayment
 );
 
+router.post('/cancel',
+    authMiddleware.authUser,
+    body('rideId').isMongoId().withMessage('Invalid ride id'),
+    rideController.cancelRide
+);
+
 
 
 module.exports = router;

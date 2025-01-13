@@ -59,16 +59,24 @@ const Home = () => {
     e.preventDefault();
   };
 
-  socket.on("ride-confirmed", (ride) => {
-    setVehicleFound(false);
-    setWaitingForDriver(true);
-    setRide(ride);
-  });
+  useEffect(() => {
+    socket.on("ride-confirmed", (rideData) => {
+      console.log("Ride confirmed data:", rideData); // Debug log
+      setVehicleFound(false);
+      setWaitingForDriver(true);
+      setRide(rideData);
+    });
 
-  socket.on("ride-started", (ride) => {
-    setWaitingForDriver(false);
-    navigate("/riding", { state: { ride } });
-  });
+    socket.on("ride-started", (rideData) => {
+      setWaitingForDriver(false);
+      navigate("/riding", { state: { ride: rideData } });
+    });
+
+    return () => {
+      socket.off("ride-confirmed");
+      socket.off("ride-started");
+    };
+  }, [socket, navigate]);
 
   const handlePickupChange = async (e) => {
     setPickup(e.target.value);
@@ -225,19 +233,28 @@ const Home = () => {
   }
 
   async function createRide() {
-    const response = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/rides/create`,
-      {
-        pickup,
-        destination,
-        vehicleType,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-    );
+    try {
+        const response = await axios.post(
+            `${import.meta.env.VITE_BASE_URL}/rides/create`,
+            {
+                pickup,
+                destination,
+                vehicleType,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            }
+        );
+        
+        // Set the ride data after creation
+        setRide(response.data);
+        
+    } catch (error) {
+        console.error('Error creating ride:', error);
+        alert('Failed to create ride. Please try again.');
+    }
   }
 
   return (
@@ -350,6 +367,7 @@ const Home = () => {
           className="fixed w-full z-10 bottom-0 translate-y-full bg-white px-3 py-6 pt-12"
         >
           <LookingForDriver
+            ride={ride}
             createRide={createRide}
             pickup={pickup}
             destination={destination}
@@ -359,16 +377,15 @@ const Home = () => {
           />
         </div>
 
-        <div
-          ref={waitingForDriverRef}
-          className="fixed w-full  z-10 bottom-0  bg-white px-3 py-6 pt-12"
-        >
-          <WaitingForDriver
-            ride={ride}
-            setVehicleFound={setVehicleFound}
-            setWaitingForDriver={setWaitingForDriver}
-            waitingForDriver={waitingForDriver}
-          />
+        <div ref={waitingForDriverRef} className="fixed w-full z-10 bottom-0 bg-white px-3 py-6 pt-12">
+          {waitingForDriver && ride && (
+            <WaitingForDriver
+              ride={ride}
+              setVehicleFound={setVehicleFound}
+              setWaitingForDriver={setWaitingForDriver}
+              waitingForDriver={waitingForDriver}
+            />
+          )}
         </div>
       </div>
     </div>
