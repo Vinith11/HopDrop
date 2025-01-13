@@ -7,20 +7,26 @@ const FinishRide = (props) => {
   const navigate = useNavigate();
 
   async function endRide() {
-    const response = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/rides/end-ride`,
-      {
-        rideId: props.ride._id,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/rides/end-ride`,
+        {
+          rideId: props.ride._id,
         },
-      }
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-    if (response.status === 200) {
-      navigate("/captain-home");
+      if (response.status === 200) {
+        props.setFinishRidePanel(false);
+        props.setIsWaitingForPayment(true);
+      }
+    } catch (error) {
+      console.error('Error ending ride:', error);
+      alert('Failed to end ride. Please try again.');
     }
   }
 

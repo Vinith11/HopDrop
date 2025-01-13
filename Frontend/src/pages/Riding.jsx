@@ -11,9 +11,16 @@ const Riding = () => {
   const { socket } = useContext(SocketContext);
   const [rideStatus, setRideStatus] = useState(ride?.status || 'ongoing');
 
-  socket.on("ride-ended", (updatedRide) => {
-    setRideStatus('completed');
-  });
+  useEffect(() => {
+    socket.on("ride-ended", (updatedRide) => {
+      console.log("Ride ended event received");
+      setRideStatus('completed');
+    });
+
+    return () => {
+      socket.off("ride-ended");
+    };
+  }, [socket]);
 
   const handlePaymentClick = () => {
     navigate("/payment", { state: { ride } });
@@ -28,7 +35,7 @@ const Riding = () => {
         <i className="text-lg font-medium ri-home-5-line"></i>
       </Link>
       <div className="h-1/2">
-        <LiveTracking />
+        {/* <LiveTracking /> */}
       </div>
       <div className="h-1/2 p-4">
         <div className="flex items-center justify-between">

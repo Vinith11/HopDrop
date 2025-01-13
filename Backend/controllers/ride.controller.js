@@ -135,15 +135,19 @@ module.exports.endRide = async (req, res) => {
 
     // Send socket event to user
     if (ride.user && ride.user.socketId) {
+      console.log("Sending ride-ended event to user", ride.user.socketId);
       sendMessageToSocketId(ride.user.socketId, {
         event: "ride-ended",
-        data: ride,
+        data: {
+          ...ride.toObject(),
+          status: 'completed'
+        }
       });
     }
 
     return res.status(200).json(ride);
   } catch (err) {
-    console.error('End ride error:', err); // Add this for debugging
+    console.error('End ride error:', err);
     return res.status(500).json({ 
       message: err.message || 'Error ending ride',
       error: process.env.NODE_ENV === 'development' ? err : undefined
@@ -163,7 +167,8 @@ module.exports.handlePayment = async (req, res) => {
     const ride = await rideModel.findOneAndUpdate(
       { 
         _id: rideId,
-        user: req.user._id  // Ensure the ride belongs to the user making the payment
+        user: req.user._id,
+        status: 'completed'  // Ensure ride is completed
       },
       { 
         status: 'paid',
@@ -173,17 +178,34 @@ module.exports.handlePayment = async (req, res) => {
     ).populate('captain').populate('user');
 
     if (!ride) {
-      throw new Error('Ride not found');
+      throw new Error('Ride not found or not in completed state');
     }
 
-    // Notify captain about payment
-    sendMessageToSocketId(ride.captain.socketId, {
-      event: "payment-received",
-      data: ride,
-    });
+    // Notify captain about payment through socket
+    if (ride.captain && ride.captain.socketId) {
+      sendMessageToSocketId(ride.captain.socketId, {
+        event: "payment-received",
+        data: {
+          rideId: ride._id,
+          amount: ride.fare,
+          paymentMethod: paymentMethod,
+          timestamp: new Date(),
+          user: {
+            name: ride.user.fullname.firstname,
+            phone: ride.user.phone
+          }
+        }
+      });
+    }
 
-    return res.status(200).json(ride);
+    return res.status(200).json({
+      message: 'Payment processed successfully',
+      ride
+    });
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    console.error('Payment processing error:', err);
+    return res.status(500).json({ 
+      message: err.message || 'Error processing payment'
+    });
   }
 };

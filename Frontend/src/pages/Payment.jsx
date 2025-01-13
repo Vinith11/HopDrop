@@ -1,17 +1,18 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { SocketContext } from '../context/SocketContext';
-
 
 const Payment = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { ride } = location.state;
   const { socket } = useContext(SocketContext);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handlePayment = async (method) => {
     try {
+      setIsProcessing(true);
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/rides/payment`,
         {
@@ -25,14 +26,19 @@ const Payment = () => {
         }
       );
 
-      if (method === 'razorpay') {
-        // Implement Razorpay logic here
-      } else {
-        // Cash payment
-        navigate('/home');
+      if (response.data) {
+        if (method === 'razorpay') {
+          // Implement Razorpay logic here
+        } else {
+          // Cash payment
+          navigate('/home');
+        }
       }
     } catch (error) {
       console.error('Payment error:', error);
+      alert(error.response?.data?.message || 'Payment failed. Please try again.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -42,15 +48,17 @@ const Payment = () => {
       <div className="space-y-4">
         <button
           onClick={() => handlePayment('cash')}
-          className="w-full p-4 bg-green-600 text-white rounded-lg font-semibold"
+          disabled={isProcessing}
+          className={`w-full p-4 ${isProcessing ? 'bg-gray-400' : 'bg-green-600'} text-white rounded-lg font-semibold`}
         >
-          Pay with Cash
+          {isProcessing ? 'Processing...' : 'Pay with Cash'}
         </button>
         <button
           onClick={() => handlePayment('razorpay')}
-          className="w-full p-4 bg-blue-600 text-white rounded-lg font-semibold"
+          disabled={isProcessing}
+          className={`w-full p-4 ${isProcessing ? 'bg-gray-400' : 'bg-blue-600'} text-white rounded-lg font-semibold`}
         >
-          Pay with Razorpay
+          {isProcessing ? 'Processing...' : 'Pay with Razorpay'}
         </button>
       </div>
     </div>
