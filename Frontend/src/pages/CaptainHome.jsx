@@ -8,6 +8,7 @@ import ConfirmRidePopUp from "../components/ConfirmRidePopUp";
 import axios from "axios";
 import { CaptainDataContext } from "../context/CaptainContext";
 import { SocketContext } from "../context/SocketContext";
+import logo from "../assets/HopDrop.png";
 
 const CaptainHome = () => {
   const [ridePopupPanel, setRidePopupPanel] = useState(false);
@@ -99,8 +100,8 @@ const CaptainHome = () => {
     <div className="h-screen">
       <div className="fixed p-6 top-0 flex items-center justify-between w-screen">
         <img
-          className="w-16"
-          src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png"
+          className="w-32"
+          src={logo}
           alt=""
         />
         <Link

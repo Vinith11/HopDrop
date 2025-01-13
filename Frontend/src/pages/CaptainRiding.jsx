@@ -14,6 +14,7 @@ const CaptainRiding = () => {
     const [ finishRidePanel, setFinishRidePanel ] = useState(false)
     const [isWaitingForPayment, setIsWaitingForPayment] = useState(false)
     const [paymentReceived, setPaymentReceived] = useState(false)
+    const [paymentMethod, setPaymentMethod] = useState(null)
     
     const finishRidePanelRef = useRef(null)
     const paymentPanelRef = useRef(null)
@@ -23,12 +24,18 @@ const CaptainRiding = () => {
     const { socket } = useContext(SocketContext)
 
     useEffect(() => {
+        socket.on("cash-payment-request", (data) => {
+            console.log("Cash payment requested");
+            setPaymentMethod('cash');
+        });
+
         socket.on("payment-received", (paymentData) => {
             setPaymentReceived(true);
             setIsWaitingForPayment(true);
         });
 
         return () => {
+            socket.off("cash-payment-request");
             socket.off("payment-received");
         };
     }, [socket]);
@@ -151,15 +158,17 @@ const CaptainRiding = () => {
                             <div className="text-sm text-gray-500">
                                 <p>Ride Amount: ₹{rideData.fare}</p>
                             </div>
-                            <button
-                                onClick={() => {
-                                    socket.emit("confirm-cash", { rideId: rideData._id });
-                                    setPaymentReceived(true);
-                                }}
-                                className="mt-4 w-full p-4 bg-green-600 text-white rounded-lg font-semibold"
-                            >
-                                Confirm Cash Received
-                            </button>
+                            {paymentMethod === 'cash' && (
+                                <button
+                                    onClick={() => {
+                                        socket.emit("confirm-cash", { rideId: rideData._id });
+                                        setPaymentReceived(true);
+                                    }}
+                                    className="mt-4 w-full p-4 bg-green-600 text-white rounded-lg font-semibold"
+                                >
+                                    Confirm Cash Received
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>

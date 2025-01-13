@@ -72,10 +72,10 @@ const Home = () => {
 
   const handlePickupChange = async (e) => {
     setPickup(e.target.value);
-    
+
     // Clear any existing timeout
     if (pickupTimeout) clearTimeout(pickupTimeout);
-    
+
     // Set new timeout
     const newTimeout = setTimeout(async () => {
       try {
@@ -91,16 +91,16 @@ const Home = () => {
         setPickupSuggestions(response.data);
       } catch {}
     }, 300); // 300ms delay
-    
+
     setPickupTimeout(newTimeout);
   };
 
   const handleDestinationChange = async (e) => {
     setDestination(e.target.value);
-    
+
     // Clear any existing timeout
     if (destinationTimeout) clearTimeout(destinationTimeout);
-    
+
     // Set new timeout
     const newTimeout = setTimeout(async () => {
       try {
@@ -118,7 +118,7 @@ const Home = () => {
         // handle error
       }
     }, 300); // 300ms delay
-    
+
     setDestinationTimeout(newTimeout);
   };
 
@@ -242,13 +242,14 @@ const Home = () => {
 
   return (
     <div className="h-screen relative overflow-hidden">
-      <img
-        className="w-32 absolute left-5 top-5"
-        src={logo}
-        alt="HopDrop"
-      />
+      <img className="w-32 absolute left-5 top-5" src={logo} alt="HopDrop" />
       <div className="h-screen w-screen">
         {/* <LiveTracking /> */}
+        <img
+          className="h-full w-full object-cover"
+          src="https://miro.medium.com/v2/resize:fit:1400/0*gwMx05pqII5hbfmX.gif"
+          alt=""
+        />
       </div>
 
       <div className=" flex flex-col justify-end h-screen absolute top-0 w-full">
