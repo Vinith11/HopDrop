@@ -41,7 +41,7 @@ const FinishRide = (props) => {
         <i className="text-3xl text-gray-200 ri-arrow-down-wide-line"></i>
       </h5>
       <h3 className="text-2xl font-semibold mb-5">Finish this Ride</h3>
-      <div className="flex items-center justify-between p-4 border-2 border-yellow-400 rounded-lg mt-4">
+      <div className="flex items-center justify-between p-4 bg-yellow-400 rounded-lg mt-4">
         <div className="flex items-center gap-3 ">
           <img
             className="h-12 rounded-full object-cover w-12"
