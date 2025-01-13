@@ -39,6 +39,13 @@ router.post('/end-ride',
     rideController.endRide
 )
 
+router.post('/payment',
+    authMiddleware.authUser,
+    body('rideId').isMongoId().withMessage('Invalid ride id'),
+    body('paymentMethod').isString().isIn(['cash', 'razorpay']).withMessage('Invalid payment method'),
+    rideController.handlePayment
+);
+
 
 
 module.exports = router;

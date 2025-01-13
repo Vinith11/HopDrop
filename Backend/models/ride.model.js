@@ -26,7 +26,7 @@ const rideSchema = new mongoose.Schema({
 
     status: {
         type: String,
-        enum: [ 'pending', 'accepted', "ongoing", 'completed', 'cancelled' ],
+        enum: [ 'pending', 'accepted', "ongoing", 'completed', 'cancelled', 'paid' ],
         default: 'pending',
     },
 
@@ -52,6 +52,12 @@ const rideSchema = new mongoose.Schema({
         type: String,
         select: false,
         required: true,
+    },
+
+    paymentMethod: {
+        type: String,
+        enum: ['cash', 'razorpay'],
+        required: false,
     },
 })
 

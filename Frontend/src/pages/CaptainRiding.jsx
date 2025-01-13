@@ -1,10 +1,12 @@
-import React, { useRef, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import React, { useContext, useRef, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import axios from 'axios'
 
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import FinishRide from '../components/FinishRide'
 import LiveTracking from '../components/LiveTracking'
+import { SocketContext } from '../context/SocketContext'
 
 
 const CaptainRiding = () => {
@@ -13,8 +15,39 @@ const CaptainRiding = () => {
     const finishRidePanelRef = useRef(null)
     const location = useLocation()
     const rideData = location.state?.ride
+    const navigate = useNavigate()
+    const [isWaitingForPayment, setIsWaitingForPayment] = useState(false)
+
+    const { socket } = useContext(SocketContext);
 
 
+
+    socket.on("payment-received", (ride) => {
+        setIsWaitingForPayment(false)
+        navigate('/captain-home')
+    })
+
+    const handleFinishRide = async () => {
+        try {
+            const response = await axios.post(
+                `${import.meta.env.VITE_BASE_URL}/rides/end-ride`,
+                { rideId: rideData._id },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                }
+            );
+            
+            if (response.data) {
+                setIsWaitingForPayment(true);
+            }
+        } catch (error) {
+            console.error('Error ending ride:', error.response?.data || error);
+            // You might want to show an error message to the user
+            alert(error.response?.data?.message || 'Error ending ride. Please try again.');
+        }
+    };
 
     useGSAP(function () {
         if (finishRidePanel) {
@@ -48,8 +81,20 @@ const CaptainRiding = () => {
 
                 }}><i className="text-3xl text-gray-800 ri-arrow-up-wide-line"></i></h5>
                 <h4 className='text-xl font-semibold'>{'4 KM away'}</h4>
-                <button className=' bg-green-600 text-white font-semibold p-3 px-10 rounded-lg'>Complete Ride</button>
+                {isWaitingForPayment ? (
+                    <div className='fixed w-full bottom-0 bg-yellow-100 p-4'>
+                        <p className="text-center font-semibold">Waiting for payment from user...</p>
+                    </div>
+                ) : (
+                    <button 
+                        onClick={handleFinishRide}
+                        className='bg-green-600 text-white font-semibold p-3 px-10 rounded-lg'
+                    >
+                        Complete Ride
+                    </button>
+                )}
             </div>
+            
             <div ref={finishRidePanelRef} className='fixed w-full z-[500] bottom-0 translate-y-full bg-white px-3 py-10 pt-12'>
                 <FinishRide
                     ride={rideData}

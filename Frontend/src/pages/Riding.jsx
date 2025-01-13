@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom"; // Added useLocation
 import { useNavigate } from "react-router-dom";
 import LiveTracking from "../components/LiveTracking";
@@ -9,12 +9,15 @@ const Riding = () => {
   const navigate = useNavigate();
   const { ride } = location.state || { ride: null };
   const { socket } = useContext(SocketContext);
+  const [rideStatus, setRideStatus] = useState(ride?.status || 'ongoing');
+
+  socket.on("ride-ended", (updatedRide) => {
+    setRideStatus('completed');
+  });
 
   const handlePaymentClick = () => {
-    navigate("/home");
+    navigate("/payment", { state: { ride } });
   };
-  
-  socket.on("ride-ended");
 
   return (
     <div className="h-screen">
@@ -67,12 +70,14 @@ const Riding = () => {
             </div>
           </div>
         </div>
-        <button
-          className="w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg"
-          onClick={handlePaymentClick}
-        >
-          Make a Payment
-        </button>
+        {rideStatus === 'completed' && (
+          <button
+            className="w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg"
+            onClick={handlePaymentClick}
+          >
+            Make a Payment
+          </button>
+        )}
       </div>
     </div>
   );

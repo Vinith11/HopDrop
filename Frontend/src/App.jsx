@@ -13,6 +13,7 @@ import UserLogout from "./pages/UserLogout";
 import CaptainLogout from "./pages/CaptainLogout";
 import Riding from "./pages/Riding";
 import CaptainRiding from "./pages/CaptainRiding";
+import Payment from "./pages/Payment";
 
 const App = () => {
   return (
@@ -26,6 +27,8 @@ const App = () => {
 
         <Route path="/riding" element={<Riding />} />
         <Route path="/captain-riding" element={<CaptainRiding />} />
+
+        <Route path="/payment" element={<Payment />} />
         
 
         <Route

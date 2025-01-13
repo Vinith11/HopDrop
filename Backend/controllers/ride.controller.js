@@ -128,18 +128,62 @@ module.exports.endRide = async (req, res) => {
   const { rideId } = req.body;
 
   try {
-    const ride = await rideService.endRide({ rideId, captain: req.captain });
-
-    sendMessageToSocketId(ride.user.socketId, {
-      event: "ride-ended",
-      data: ride,
+    const ride = await rideService.endRide({ 
+      rideId, 
+      captain: req.captain 
     });
 
-    console.log(ride);
+    // Send socket event to user
+    if (ride.user && ride.user.socketId) {
+      sendMessageToSocketId(ride.user.socketId, {
+        event: "ride-ended",
+        data: ride,
+      });
+    }
+
+    return res.status(200).json(ride);
+  } catch (err) {
+    console.error('End ride error:', err); // Add this for debugging
+    return res.status(500).json({ 
+      message: err.message || 'Error ending ride',
+      error: process.env.NODE_ENV === 'development' ? err : undefined
+    });
+  }
+};
+
+module.exports.handlePayment = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { rideId, paymentMethod } = req.body;
+
+  try {
+    const ride = await rideModel.findOneAndUpdate(
+      { 
+        _id: rideId,
+        user: req.user._id  // Ensure the ride belongs to the user making the payment
+      },
+      { 
+        status: 'paid',
+        paymentMethod: paymentMethod 
+      },
+      { new: true }
+    ).populate('captain').populate('user');
+
+    if (!ride) {
+      throw new Error('Ride not found');
+    }
+
+    // Notify captain about payment
+    sendMessageToSocketId(ride.captain.socketId, {
+      event: "payment-received",
+      data: ride,
+    });
 
     return res.status(200).json(ride);
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
-  s;
 };
