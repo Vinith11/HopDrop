@@ -13,6 +13,7 @@ import { UserDataContext } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import LiveTracking from "../components/LiveTracking";
+import logo from "../assets/HopDrop.png";
 
 const Home = () => {
   const [pickup, setPickup] = useState("");
@@ -34,6 +35,8 @@ const Home = () => {
   const [fare, setFare] = useState({});
   const [vehicleType, setVehicleType] = useState(null);
   const [ride, setRide] = useState(null);
+  const [pickupTimeout, setPickupTimeout] = useState(null);
+  const [destinationTimeout, setDestinationTimeout] = useState(null);
 
   const navigate = useNavigate();
 
@@ -43,6 +46,14 @@ const Home = () => {
   useEffect(() => {
     socket.emit("join", { userType: "user", userId: user._id });
   }, [user]);
+
+  useEffect(() => {
+    // Cleanup function
+    return () => {
+      if (pickupTimeout) clearTimeout(pickupTimeout);
+      if (destinationTimeout) clearTimeout(destinationTimeout);
+    };
+  }, [pickupTimeout, destinationTimeout]);
 
   const submitHandler = (e) => {
     e.preventDefault();
@@ -61,37 +72,54 @@ const Home = () => {
 
   const handlePickupChange = async (e) => {
     setPickup(e.target.value);
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/maps/get-suggestions`,
-        {
-          params: { input: e.target.value },
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      console.log(response.data);
-      setPickupSuggestions(response.data);
-    } catch {}
+    
+    // Clear any existing timeout
+    if (pickupTimeout) clearTimeout(pickupTimeout);
+    
+    // Set new timeout
+    const newTimeout = setTimeout(async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/maps/get-suggestions`,
+          {
+            params: { input: e.target.value },
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        setPickupSuggestions(response.data);
+      } catch {}
+    }, 300); // 300ms delay
+    
+    setPickupTimeout(newTimeout);
   };
 
   const handleDestinationChange = async (e) => {
     setDestination(e.target.value);
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/maps/get-suggestions`,
-        {
-          params: { input: e.target.value },
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      setDestinationSuggestions(response.data);
-    } catch {
-      // handle error
-    }
+    
+    // Clear any existing timeout
+    if (destinationTimeout) clearTimeout(destinationTimeout);
+    
+    // Set new timeout
+    const newTimeout = setTimeout(async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/maps/get-suggestions`,
+          {
+            params: { input: e.target.value },
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        setDestinationSuggestions(response.data);
+      } catch {
+        // handle error
+      }
+    }, 300); // 300ms delay
+    
+    setDestinationTimeout(newTimeout);
   };
 
   useGSAP(
@@ -215,12 +243,12 @@ const Home = () => {
   return (
     <div className="h-screen relative overflow-hidden">
       <img
-        className="w-16 absolute left-5 top-5"
-        src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png"
-        alt=""
+        className="w-36 absolute left-5 top-5"
+        src={logo}
+        alt="HopDrop"
       />
       <div className="h-screen w-screen">
-        <LiveTracking />
+        {/* <LiveTracking /> */}
       </div>
 
       <div className=" flex flex-col justify-end h-screen absolute top-0 w-full">
