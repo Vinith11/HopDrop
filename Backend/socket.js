@@ -1,6 +1,7 @@
 const socketIo = require('socket.io');
 const userModel = require('./models/user.model');
 const captainModel = require('./models/captain.model');
+const rideModel = require('./models/ride.model');
 
 let io;
 
@@ -38,6 +39,26 @@ function initializeSocket(server) {
                 location: {
                     ltd: location.ltd,
                     lng: location.lng
+                }
+            });
+        });
+
+        socket.on('cash-payment', (data) => {
+            const { rideId } = data;
+            // Find the captain's socketId and notify them
+            rideModel.findById(rideId).populate('captain').then(ride => {
+                if (ride && ride.captain && ride.captain.socketId) {
+                    io.to(ride.captain.socketId).emit('cash-payment-request', { rideId });
+                }
+            });
+        });
+
+        socket.on('confirm-cash', (data) => {
+            const { rideId } = data;
+            // Find the user's socketId and notify them
+            rideModel.findById(rideId).populate('user').then(ride => {
+                if (ride && ride.user && ride.user.socketId) {
+                    io.to(ride.user.socketId).emit('cash-confirmed');
                 }
             });
         });

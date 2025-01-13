@@ -151,6 +151,15 @@ const CaptainRiding = () => {
                             <div className="text-sm text-gray-500">
                                 <p>Ride Amount: ₹{rideData.fare}</p>
                             </div>
+                            <button
+                                onClick={() => {
+                                    socket.emit("confirm-cash", { rideId: rideData._id });
+                                    setPaymentReceived(true);
+                                }}
+                                className="mt-4 w-full p-4 bg-green-600 text-white rounded-lg font-semibold"
+                            >
+                                Confirm Cash Received
+                            </button>
                         </div>
                     )}
                 </div>
