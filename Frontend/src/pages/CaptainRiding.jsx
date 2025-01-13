@@ -15,27 +15,27 @@ const CaptainRiding = () => {
     const [isWaitingForPayment, setIsWaitingForPayment] = useState(false)
     const [paymentReceived, setPaymentReceived] = useState(false)
     const [paymentMethod, setPaymentMethod] = useState(null)
+    const [showPaymentPopup, setShowPaymentPopup] = useState(false)
     
     const finishRidePanelRef = useRef(null)
     const paymentPanelRef = useRef(null)
+    const paymentPopupRef = useRef(null)
     const location = useLocation()
     const navigate = useNavigate()
     const rideData = location.state?.ride
     const { socket } = useContext(SocketContext)
 
     useEffect(() => {
-        socket.on("cash-payment-request", (data) => {
-            console.log("Cash payment requested");
-            setPaymentMethod('cash');
-        });
-
+        // Listen for both cash and Razorpay payment events
         socket.on("payment-received", (paymentData) => {
+            console.log("Payment received:", paymentData);
             setPaymentReceived(true);
-            setIsWaitingForPayment(true);
+            setPaymentMethod(paymentData.paymentMethod);
+            setIsWaitingForPayment(false); // Stop showing waiting screen
+            setShowPaymentPopup(true); // Show popup when payment is received
         });
 
         return () => {
-            socket.off("cash-payment-request");
             socket.off("payment-received");
         };
     }, [socket]);
@@ -93,6 +93,24 @@ const CaptainRiding = () => {
         }
     }, [isWaitingForPayment])
 
+    useGSAP(() => {
+        if (showPaymentPopup) {
+            gsap.to(paymentPopupRef.current, {
+                scale: 1,
+                opacity: 1,
+                duration: 0.3,
+                ease: 'power2.out'
+            });
+        } else {
+            gsap.to(paymentPopupRef.current, {
+                scale: 0.5,
+                opacity: 0,
+                duration: 0.3,
+                ease: 'power2.in'
+            });
+        }
+    }, [showPaymentPopup]);
+
     return (
         <div className='h-screen relative flex flex-col justify-end'>
 
@@ -139,7 +157,7 @@ const CaptainRiding = () => {
                             <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                                 <h3 className="font-semibold">Payment Details</h3>
                                 <p className="text-gray-600">Amount: ₹{rideData.fare}</p>
-                                <p className="text-gray-600">Method: {rideData.paymentMethod}</p>
+                                <p className="text-gray-600">Method: {paymentMethod}</p>
                             </div>
                             <button
                                 onClick={() => navigate('/captain-home')}
@@ -184,6 +202,49 @@ const CaptainRiding = () => {
             <div className='h-screen fixed w-screen top-0 z-[-1]'>
                 {/* <LiveTracking /> */}
             </div>
+
+            {/* Payment Success Popup */}
+            {showPaymentPopup && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-[600] flex items-center justify-center">
+                    <div 
+                        ref={paymentPopupRef}
+                        className="bg-white rounded-2xl p-6 w-[90%] max-w-md transform scale-50 opacity-0"
+                    >
+                        <div className="text-center space-y-4">
+                            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                                <i className="ri-checkbox-circle-fill text-5xl text-green-500"></i>
+                            </div>
+                            
+                            <div>
+                                <h2 className="text-2xl font-bold text-green-600">Payment Successful!</h2>
+                                <p className="text-gray-600 mt-1">Ride payment has been completed</p>
+                            </div>
+
+                            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Amount</span>
+                                    <span className="font-semibold">₹{rideData.fare}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Payment Method</span>
+                                    <span className="font-semibold capitalize">{paymentMethod}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Customer</span>
+                                    <span className="font-semibold">{rideData.user.fullname.firstname}</span>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => navigate('/captain-home')}
+                                className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold mt-4 hover:bg-green-700 transition-colors"
+                            >
+                                Go to Home
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     )

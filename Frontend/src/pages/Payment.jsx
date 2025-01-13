@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { SocketContext } from '../context/SocketContext';
+import axios from 'axios';
 
 const Payment = () => {
   const location = useLocation();
@@ -21,12 +22,82 @@ const Payment = () => {
     };
   }, [socket]);
 
+  const initializeRazorpay = async (rideId) => {
+    try {
+      // Create order
+      const orderResponse = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/rides/create-payment`,
+        { rideId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const options = {
+        key: orderResponse.data.key,
+        amount: orderResponse.data.amount,
+        currency: orderResponse.data.currency,
+        name: "Your Ride Payment",
+        description: "Ride Payment",
+        order_id: orderResponse.data.orderId,
+        handler: async function (response) {
+          try {
+            const verificationResponse = await axios.post(
+              `${import.meta.env.VITE_BASE_URL}/rides/verify-payment`,
+              {
+                rideId: ride._id,
+                paymentData: {
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature
+                }
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+              }
+            );
+
+            if (verificationResponse.data.success) {
+              setPaymentSuccess(true);
+            }
+          } catch (error) {
+            console.error('Payment verification failed:', error);
+            alert('Payment verification failed. Please try again.');
+          }
+        },
+        prefill: {
+          name: ride.user?.fullname?.firstname,
+          email: ride.user?.email,
+          contact: ride.user?.phone
+        },
+        theme: {
+          color: "#16a34a"
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
+      rzp.on('payment.failed', function (response) {
+        alert('Payment failed. Please try again.');
+      });
+
+    } catch (error) {
+      console.error('Failed to initialize payment:', error);
+      alert('Failed to initialize payment. Please try again.');
+    }
+  };
+
   const handlePayment = (method) => {
     if (method === 'cash') {
       setWaitingForConfirmation(true);
       socket.emit("cash-payment", { rideId: ride._id });
-    } else {
-      // Implement Razorpay logic here
+    } else if (method === 'razorpay') {
+      initializeRazorpay(ride._id);
     }
   };
 

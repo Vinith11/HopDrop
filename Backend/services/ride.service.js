@@ -2,6 +2,18 @@ const rideModel = require('../models/ride.model');
 const mapService = require('./maps.service');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const Razorpay = require('razorpay');
+
+function getRazorpayInstance() {
+  if (!process.env.RAZORPAY_API_KEY || !process.env.RAZORPAY_API_SECRET) {
+    throw new Error('Razorpay credentials are not configured');
+  }
+  
+  return new Razorpay({
+    key_id: process.env.RAZORPAY_API_KEY,
+    key_secret: process.env.RAZORPAY_API_SECRET
+  });
+}
 
 async function getFare(pickup, destination) {
 
@@ -154,3 +166,54 @@ module.exports.endRide = async ({ rideId, captain }) => {
 
     return updatedRide;
 }
+
+// Add this function to create Razorpay order
+module.exports.createPaymentOrder = async (rideId) => {
+  const ride = await rideModel.findById(rideId).populate('user');
+  if (!ride) {
+    throw new Error('Ride not found');
+  }
+
+  const options = {
+    amount: ride.fare * 100,
+    currency: "INR",
+    receipt: `ride_${rideId}`,
+    notes: {
+      rideId: rideId,
+      userEmail: ride.user.email
+    }
+  };
+
+  try {
+    const razorpay = getRazorpayInstance();
+    const order = await razorpay.orders.create(options);
+    
+    await rideModel.findByIdAndUpdate(rideId, {
+      orderId: order.id
+    });
+
+    return order;
+  } catch (error) {
+    console.error('Razorpay order creation failed:', error);
+    throw new Error('Failed to create payment order: ' + error.message);
+  }
+};
+
+// Add this function to verify payment
+module.exports.verifyPayment = async (paymentData) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = paymentData;
+  
+  if (!process.env.RAZORPAY_API_SECRET) {
+    throw new Error('Razorpay secret key is not configured');
+  }
+
+  const shasum = crypto.createHmac('sha256', process.env.RAZORPAY_API_SECRET);
+  shasum.update(`${razorpay_order_id}|${razorpay_payment_id}`);
+  const digest = shasum.digest('hex');
+
+  if (digest !== razorpay_signature) {
+    throw new Error('Payment verification failed');
+  }
+
+  return true;
+};

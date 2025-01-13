@@ -246,3 +246,59 @@ module.exports.cancelRide = async (req, res) => {
         return res.status(500).json({ message: err.message });
     }
 };
+
+module.exports.createPaymentOrder = async (req, res) => {
+  const { rideId } = req.body;
+  
+  try {
+    const order = await rideService.createPaymentOrder(rideId);
+    res.status(200).json({
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      key: process.env.RAZORPAY_API_KEY
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.verifyPayment = async (req, res) => {
+  const { rideId, paymentData } = req.body;
+  
+  try {
+    await rideService.verifyPayment(paymentData);
+    
+    // Update ride with payment details
+    const ride = await rideModel.findByIdAndUpdate(
+      rideId,
+      {
+        status: 'paid',
+        paymentMethod: 'razorpay',
+        paymentID: paymentData.razorpay_payment_id,
+        signature: paymentData.razorpay_signature
+      },
+      { new: true }
+    ).populate('captain');
+
+    // Notify captain about payment
+    if (ride.captain?.socketId) {
+      sendMessageToSocketId(ride.captain.socketId, {
+        event: "payment-received",
+        data: {
+          rideId: ride._id,
+          amount: ride.fare,
+          paymentMethod: 'razorpay',
+          timestamp: new Date()
+        }
+      });
+    }
+
+    res.status(200).json({ success: true, ride });
+  } catch (error) {
+    res.status(400).json({ 
+      success: false, 
+      message: error.message 
+    });
+  }
+};
