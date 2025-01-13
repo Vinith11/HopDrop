@@ -95,7 +95,11 @@ const Payment = () => {
   const handlePayment = (method) => {
     if (method === 'cash') {
       setWaitingForConfirmation(true);
-      socket.emit("cash-payment", { rideId: ride._id });
+      socket.emit("cash-payment", { 
+        rideId: ride._id,
+        amount: ride.fare,
+        paymentMethod: 'cash'
+      });
     } else if (method === 'razorpay') {
       initializeRazorpay(ride._id);
     }

@@ -31,12 +31,19 @@ const CaptainRiding = () => {
             console.log("Payment received:", paymentData);
             setPaymentReceived(true);
             setPaymentMethod(paymentData.paymentMethod);
-            setIsWaitingForPayment(false); // Stop showing waiting screen
-            setShowPaymentPopup(true); // Show popup when payment is received
+            setIsWaitingForPayment(false);
+            setShowPaymentPopup(true);
+        });
+
+        // Add this listener for cash payment requests
+        socket.on("cash-payment-request", (data) => {
+            console.log("Cash payment requested:", data);
+            setPaymentMethod('cash');
         });
 
         return () => {
             socket.off("payment-received");
+            socket.off("cash-payment-request");
         };
     }, [socket]);
 
