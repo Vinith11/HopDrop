@@ -13,7 +13,6 @@ import logo from "../assets/HopDrop.png";
 const CaptainHome = () => {
   const [ridePopupPanel, setRidePopupPanel] = useState(false);
   const [confirmRidePopupPanel, setConfirmRidePopupPanel] = useState(false);
-
   const ridePopupPanelRef = useRef(null);
   const confirmRidePopupPanelRef = useRef(null);
   const [ride, setRide] = useState(null);
@@ -22,16 +21,26 @@ const CaptainHome = () => {
   const { socket } = useContext(SocketContext);
 
   useEffect(() => {
+    if (!socket || !captain?._id) return;
+
+    // Join captain's room
     socket.emit("join", { userType: "captain", userId: captain._id });
 
+    // Listen for new ride requests
     socket.on("new-ride", (data) => {
       console.log("New ride received:", data);
       setRide(data);
       setRidePopupPanel(true);
     });
 
+    // Listen for ride cancellations
+    socket.on("ride-cancelled", () => {
+      setRide(null);
+      setRidePopupPanel(false);
+      setConfirmRidePopupPanel(false);
+    });
 
-
+    // Update location periodically
     const updateLocation = () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
@@ -47,76 +56,72 @@ const CaptainHome = () => {
     };
 
     const locationInterval = setInterval(updateLocation, 10000);
-    updateLocation();
+    updateLocation(); // Initial location update
 
     return () => {
       clearInterval(locationInterval);
       socket.off("new-ride");
       socket.off("ride-cancelled");
     };
-  }, [socket, captain._id, ride]);
+  }, [socket, captain?._id]);
 
   async function confirmRide() {
-    const response = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/rides/confirm`,
-      {
-        rideId: ride._id,
-        captainId: captain._id,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/rides/confirm`,
+        {
+          rideId: ride._id,
+          captainId: captain._id,
         },
-      }
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-    setRidePopupPanel(false);
-    setConfirmRidePopupPanel(true);
+      setRidePopupPanel(false);
+      setConfirmRidePopupPanel(true);
+      setRide(response.data);
+    } catch (error) {
+      console.error("Error confirming ride:", error);
+      alert("Failed to confirm ride. Please try again.");
+    }
   }
 
-  useGSAP(
-    function () {
-      if (ridePopupPanel) {
-        gsap.to(ridePopupPanelRef.current, {
-          transform: "translateY(0)",
-        });
-      } else {
-        gsap.to(ridePopupPanelRef.current, {
-          transform: "translateY(100%)",
-        });
-      }
-    },
-    [ridePopupPanel]
-  );
+  useGSAP(() => {
+    if (ridePopupPanel) {
+      gsap.to(ridePopupPanelRef.current, {
+        transform: "translateY(0)",
+      });
+    } else {
+      gsap.to(ridePopupPanelRef.current, {
+        transform: "translateY(100%)",
+      });
+    }
+  }, [ridePopupPanel]);
 
-  useGSAP(
-    function () {
-      if (confirmRidePopupPanel) {
-        gsap.to(confirmRidePopupPanelRef.current, {
-          transform: "translateY(0)",
-        });
-      } else {
-        gsap.to(confirmRidePopupPanelRef.current, {
-          transform: "translateY(100%)",
-        });
-      }
-    },
-    [confirmRidePopupPanel]
-  );
+  useGSAP(() => {
+    if (confirmRidePopupPanel) {
+      gsap.to(confirmRidePopupPanelRef.current, {
+        transform: "translateY(0)",
+      });
+    } else {
+      gsap.to(confirmRidePopupPanelRef.current, {
+        transform: "translateY(100%)",
+      });
+    }
+  }, [confirmRidePopupPanel]);
 
   return (
     <div className="h-screen">
       <div className="fixed p-6 top-0 flex items-center justify-between w-screen">
-        <img
-          className="w-32"
-          src={logo}
-          alt=""
-        />
+        <img className="w-32" src={logo} alt="" />
         <Link
-          to="/captain/logout"
-          className=" h-10 w-10 bg-white flex items-center justify-center rounded-full"
+          to="/captain/profile"
+          className="h-10 w-10 bg-white flex items-center justify-center rounded-full"
         >
-          <i className="text-lg font-medium ri-logout-box-r-line"></i>
+          <i className="text-lg font-medium ri-user-line"></i>
         </Link>
       </div>
       <div className="h-3/5">
@@ -129,6 +134,8 @@ const CaptainHome = () => {
       <div className="h-2/5 p-6">
         <CaptainDetails />
       </div>
+
+      {/* Ride Request Popup */}
       <div
         ref={ridePopupPanelRef}
         className="fixed w-full z-10 bottom-0 translate-y-full bg-white px-3 py-10 pt-12"
@@ -140,6 +147,8 @@ const CaptainHome = () => {
           confirmRide={confirmRide}
         />
       </div>
+
+      {/* Confirm Ride Popup */}
       <div
         ref={confirmRidePopupPanelRef}
         className="fixed w-full h-screen z-10 bottom-0 translate-y-full bg-white px-3 py-10 pt-12"

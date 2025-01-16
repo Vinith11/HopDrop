@@ -2,6 +2,7 @@ const captainModel = require("../models/captain.model");
 const captainService = require("../services/captain.service");
 const { validationResult } = require("express-validator");
 const blackListToken = require("../models/blackListToken.model");
+const earningsService = require('../services/earnings.service');
 
 module.exports.registerCaptain = async (req, res) => {
 
@@ -76,3 +77,25 @@ module.exports.logoutCaptain = async (req, res) => {
 
     res.status(200).json({ message: "Logged out successfully" });
 }
+
+module.exports.getTodayEarnings = async (req, res) => {
+    try {
+        const earnings = await earningsService.getTodayEarnings(req.captain._id);
+        res.json(earnings);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports.getEarnings = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.body;
+        const earnings = await earningsService.getCaptainEarnings(
+            req.captain._id,
+            { startDate: new Date(startDate), endDate: new Date(endDate) }
+        );
+        res.json(earnings);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

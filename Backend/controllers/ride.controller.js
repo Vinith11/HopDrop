@@ -11,7 +11,7 @@ module.exports.createRide = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { userId, pickup, destination, vehicleType } = req.body;
+  const { pickup, destination, vehicleType } = req.body;
 
   try {
     const ride = await rideService.createRide({
@@ -31,26 +31,31 @@ module.exports.createRide = async (req, res) => {
       2000
     );
 
-    console.log("Found captains in radius:", captainsInRadius.length);
-
     // Populate user details before sending
     const rideWithUser = await rideModel
       .findOne({ _id: ride._id })
       .populate("user");
 
+    console.log("Broadcasting to captains:", captainsInRadius.length);
+
     // Notify each captain
     captainsInRadius.forEach(captain => {
-      console.log("Sending ride to captain:", captain.socketId);
-      sendMessageToSocketId(captain.socketId, {
-        event: "new-ride",
-        data: rideWithUser
-      });
+      if (captain.socketId) {
+        console.log("Emitting to captain:", captain.socketId);
+        sendMessageToSocketId(captain.socketId, {
+          event: "new-ride",
+          data: rideWithUser
+        });
+      }
     });
 
     res.status(201).json(ride);
   } catch (err) {
     console.error("Create ride error:", err);
-    return res.status(500).json({ message: err.message });
+    res.status(500).json({ 
+      message: "Failed to create ride",
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
 

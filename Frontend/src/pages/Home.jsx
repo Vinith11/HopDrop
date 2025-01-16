@@ -248,12 +248,15 @@ const Home = () => {
             }
         );
         
-        // Set the ride data after creation
         setRide(response.data);
+        setVehicleFound(true); // Show the looking for driver panel
         
     } catch (error) {
         console.error('Error creating ride:', error);
-        alert('Failed to create ride. Please try again.');
+        // Show error to user
+        alert(error.response?.data?.message || 'Failed to create ride. Please try again.');
+        setConfirmRidePanel(false); // Hide the confirm panel
+        setVehiclePanel(true); // Show vehicle selection panel again
     }
   }
 

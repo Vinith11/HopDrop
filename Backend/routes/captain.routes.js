@@ -27,5 +27,7 @@ router.get('/profile', authMiddleware.authCaptain, captainController.getCaptainP
 
 router.get('/logout', authMiddleware.authCaptain, captainController.logoutCaptain);
 
+router.get('/earnings/today', authMiddleware.authCaptain, captainController.getTodayEarnings);
+router.post('/earnings', authMiddleware.authCaptain, captainController.getEarnings);
 
 module.exports = router;

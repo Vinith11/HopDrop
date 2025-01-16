@@ -59,6 +59,18 @@ const rideSchema = new mongoose.Schema({
         enum: ['cash', 'razorpay'],
         required: false,
     },
-})
+
+    completedAt: {
+        type: Date,
+    },
+    
+    earnings: {
+        type: Number,
+        required: false,
+        default: 0
+    }
+}, {
+    timestamps: true  // This will add createdAt and updatedAt fields
+});
 
 module.exports = mongoose.model('ride', rideSchema);

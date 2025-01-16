@@ -74,16 +74,18 @@ module.exports.createRide = async ({
     }
 
     const fare = await getFare(pickup, destination);
-
-
+    
+    // Calculate earnings (typically a percentage of the fare)
+    const earnings = Math.round(fare[vehicleType] * 0.8); // Captain gets 80% of fare
 
     const ride = rideModel.create({
         user,
         pickup,
         destination,
         otp: getOtp(6),
-        fare: fare[ vehicleType ]
-    })
+        fare: fare[vehicleType],
+        earnings: earnings // Add earnings when creating ride
+    });
 
     return ride;
 }
