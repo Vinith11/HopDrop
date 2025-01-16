@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { LoadScript, GoogleMap, Marker } from "@react-google-maps/api";
+import {
+  AdvancedMarker,
+  APIProvider,
+  Map,
+  useAdvancedMarkerRef,
+} from "@vis.gl/react-google-maps";
 
 const containerStyle = {
   width: "100%",
@@ -49,19 +54,20 @@ const LiveTracking = () => {
 
     updatePosition(); // Initial position update
 
-    const intervalId = setInterval(updatePosition, 1000); // Update every 10 seconds
+    const intervalId = setInterval(updatePosition, 100000); // Update every 10 seconds
   }, []);
 
   return (
-    <LoadScript >
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={currentPosition}
-        zoom={15}
+    <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
+      <Map
+        style={{width: '100vw', height: '100vh'}}
+        defaultCenter={currentPosition}
+        defaultZoom={17}
+        mapId={'1'}
       >
-        <Marker position={currentPosition} />
-      </GoogleMap>
-    </LoadScript>
+        <AdvancedMarker position={currentPosition} />
+      </Map>
+    </APIProvider>
   );
 };
 
