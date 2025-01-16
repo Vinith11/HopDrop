@@ -10,7 +10,7 @@ import WaitingForDriver from "../components/WaitingForDriver";
 import axios from "axios";
 import { SocketContext } from "../context/SocketContext";
 import { UserDataContext } from "../context/UserContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useContext } from "react";
 import LiveTracking from "../components/LiveTracking";
 import logo from "../assets/HopDrop.png";
@@ -262,7 +262,16 @@ const Home = () => {
 
   return (
     <div className="h-screen relative overflow-hidden">
-      <img className="w-32 absolute left-5 top-5" src={logo} alt="HopDrop" />
+      <div className="fixed w-full p-5 flex justify-between items-center z-20">
+        <img className="w-32" src={logo} alt="HopDrop" />
+        <Link
+          to="/user/profile"
+          className="h-10 w-10 bg-white flex items-center justify-center rounded-full shadow-md"
+        >
+          <i className="text-lg font-medium ri-user-line"></i>
+        </Link>
+      </div>
+
       <div className="h-screen w-screen">
         {/* <LiveTracking /> */}
         <img

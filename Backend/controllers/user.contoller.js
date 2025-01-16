@@ -2,6 +2,7 @@ const userModel = require("../models/user.model");
 const userService = require("../services/user.service");
 const { validationResult } = require("express-validator");
 const blackListToken = require("../models/blackListToken.model");
+const rideModel = require("../models/ride.model");
 
 module.exports.registerUser = async (req, res, next) => {
 
@@ -78,3 +79,28 @@ module.exports.logoutUser = async (req, res, next) => {
 
     res.status(200).json({ message: "User logged out successfully" });
 }
+
+module.exports.getRideHistory = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const rides = await rideModel.find({ 
+            user: req.user._id 
+        })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('captain', 'fullname');
+
+        res.json({
+            rides,
+            page,
+            hasMore: rides.length === limit
+        });
+    } catch (error) {
+        console.error('Error fetching ride history:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
