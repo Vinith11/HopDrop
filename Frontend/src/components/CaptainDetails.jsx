@@ -8,28 +8,31 @@ const CaptainDetails = () => {
   const [stats, setStats] = useState({
     hoursOnline: 0,
     totalRides: 0,
-    rating: 0
+    rating: 4.8
   });
 
-  useEffect(() => {
-    const fetchTodayEarnings = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_BASE_URL}/captain/earnings/today`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        const data = await response.json();
-        setTodayEarnings(data[0]?.totalEarnings || 0);
-      } catch (error) {
-        console.error("Error fetching today's earnings:", error);
-      }
-    };
+  const fetchTodayEarnings = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/captain/earnings/today`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      const data = await response.json();
+      setTodayEarnings(data[0]?.totalEarnings || 0);
+    } catch (error) {
+      console.error("Error fetching today's earnings:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchTodayEarnings();
+    // Refresh earnings every minute
+    const interval = setInterval(fetchTodayEarnings, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   return (

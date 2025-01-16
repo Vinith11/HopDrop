@@ -58,10 +58,15 @@ const CaptainHome = () => {
     const locationInterval = setInterval(updateLocation, 10000);
     updateLocation(); // Initial location update
 
+    socket.on('earnings-updated', (data) => {
+      setTodayEarnings(data.todayEarnings);
+    });
+
     return () => {
       clearInterval(locationInterval);
       socket.off("new-ride");
       socket.off("ride-cancelled");
+      socket.off('earnings-updated');
     };
   }, [socket, captain?._id]);
 

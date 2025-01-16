@@ -2,6 +2,7 @@ const socketIO = require('socket.io');
 const userModel = require('./models/user.model');
 const captainModel = require('./models/captain.model');
 const rideModel = require('./models/ride.model');
+const earningsService = require('./services/earnings.service');
 
 let io;
 
@@ -78,11 +79,9 @@ module.exports = {
             io.to(ride.user.socketId).emit('cash-confirmed');
 
             if (ride.captain?.socketId) {
-              io.to(ride.captain.socketId).emit('payment-received', {
-                rideId: ride._id,
-                amount: ride.fare,
-                paymentMethod: 'cash',
-                timestamp: new Date()
+              const todayEarnings = await earningsService.getTodayEarnings(ride.captain._id);
+              io.to(ride.captain.socketId).emit('earnings-updated', {
+                todayEarnings: todayEarnings[0]?.totalEarnings || 0
               });
             }
           }

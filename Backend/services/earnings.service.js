@@ -5,7 +5,7 @@ module.exports.getCaptainEarnings = async (captainId, dateRange) => {
     
     const query = {
         captain: captainId,
-        status: 'paid',
+        status: { $in: ['completed', 'paid'] },
         completedAt: {
             $gte: startDate,
             $lte: endDate
@@ -23,7 +23,8 @@ module.exports.getCaptainEarnings = async (captainId, dateRange) => {
                     destination: "$destination",
                     fare: "$fare",
                     earnings: "$earnings",
-                    completedAt: "$completedAt"
+                    completedAt: "$completedAt",
+                    status: "$status"
                 }}
             }
         },

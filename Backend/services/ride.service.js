@@ -160,9 +160,16 @@ module.exports.endRide = async ({ rideId, captain }) => {
         throw new Error('Ride not found or not in ongoing state');
     }
 
+    // Calculate earnings (80% of fare)
+    const earnings = Math.round(ride.fare * 0.8);
+
     const updatedRide = await rideModel.findOneAndUpdate(
         { _id: rideId },
-        { status: 'completed' },
+        { 
+            status: 'completed',
+            completedAt: new Date(),
+            earnings: earnings
+        },
         { new: true }
     ).populate('user').populate('captain');
 
@@ -218,4 +225,24 @@ module.exports.verifyPayment = async (paymentData) => {
   }
 
   return true;
+};
+
+// Update the payment confirmation to also set earnings
+module.exports.confirmPayment = async (rideId) => {
+    const ride = await rideModel.findById(rideId);
+    if (!ride) {
+        throw new Error('Ride not found');
+    }
+
+    const updatedRide = await rideModel.findByIdAndUpdate(
+        rideId,
+        { 
+            status: 'paid',
+            completedAt: new Date(),
+            earnings: Math.round(ride.fare * 0.8) // Set earnings when payment is confirmed
+        },
+        { new: true }
+    );
+
+    return updatedRide;
 };
