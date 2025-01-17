@@ -13,35 +13,26 @@ const LiveTracking = () => {
   const [nearbyDrivers, setNearbyDrivers] = useState([]);
   const [map, setMap] = useState(null);
 
-  useEffect(() => {
-    navigator.geolocation.getCurrentPosition((position) => {
-      const { latitude, longitude } = position.coords;
-      const pos = {
-        lat: latitude,
-        lng: longitude,
-      };
-      setCurrentPosition(pos);
-      fetchNearbyDrivers(latitude, longitude);
+  const updateLocation = () => {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const pos = {
+            lat: latitude,
+            lng: longitude,
+          };
+          setCurrentPosition(pos);
+          fetchNearbyDrivers(latitude, longitude);
+          resolve();
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          reject(error);
+        }
+      );
     });
-
-    // Set up interval for position updates (3 minutes = 180000 milliseconds)
-    const intervalId = setInterval(() => {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const { latitude, longitude } = position.coords;
-        const pos = {
-          lat: latitude,
-          lng: longitude,
-        };
-        setCurrentPosition(pos);
-        fetchNearbyDrivers(latitude, longitude);
-      });
-    }, 180000); // 3 minutes interval
-
-    // Cleanup interval on component unmount
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, []);
+  };
 
   async function fetchNearbyDrivers(ltd, lng) {
     try {
@@ -62,6 +53,21 @@ const LiveTracking = () => {
       console.error("Error fetching nearby drivers:", error);
     }
   }
+
+  useEffect(() => {
+    // Update location immediately when component mounts
+    updateLocation();
+
+    // Set up interval for subsequent updates (3 minutes = 180000 milliseconds)
+    const intervalId = setInterval(() => {
+      updateLocation();
+    }, 180000);
+
+    // Cleanup interval on component unmount
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []); // Empty dependency array means this runs once on mount
 
   if (!currentPosition) return <div>Loading...</div>;
 
@@ -86,7 +92,7 @@ const LiveTracking = () => {
         {/* Nearby drivers markers */}
         {nearbyDrivers.map((driver) => {
           const position = {
-            lat: Number(driver.location.ltd) + 0.001, // Smaller offset
+            lat: Number(driver.location.ltd) + 0.001,
             lng: Number(driver.location.lng) + 0.001,
           };
 
