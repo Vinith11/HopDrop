@@ -7,7 +7,17 @@ const cookieParser = require('cookie-parser');
 
 connectDB();
 
-app.use(cors()); // Allow Cross-Origin Resource Sharing
+const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+})); // Allow Cross-Origin Resource Sharing
 app.use(express.json()); // Parse incoming request body in JSON format
 app.use(express.urlencoded({extended: true})); // Parse incoming request body in URL encoded format
 
