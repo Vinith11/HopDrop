@@ -234,29 +234,31 @@ const Home = () => {
 
   async function createRide() {
     try {
-        const response = await axios.post(
-            `${import.meta.env.VITE_BASE_URL}/rides/create`,
-            {
-                pickup,
-                destination,
-                vehicleType,
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-            }
-        );
-        
-        setRide(response.data);
-        setVehicleFound(true); // Show the looking for driver panel
-        
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/rides/create`,
+        {
+          pickup,
+          destination,
+          vehicleType,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      setRide(response.data);
+      setVehicleFound(true); // Show the looking for driver panel
     } catch (error) {
-        console.error('Error creating ride:', error);
-        // Show error to user
-        alert(error.response?.data?.message || 'Failed to create ride. Please try again.');
-        setConfirmRidePanel(false); // Hide the confirm panel
-        setVehiclePanel(true); // Show vehicle selection panel again
+      console.error("Error creating ride:", error);
+      // Show error to user
+      alert(
+        error.response?.data?.message ||
+          "Failed to create ride. Please try again."
+      );
+      setConfirmRidePanel(false); // Hide the confirm panel
+      setVehiclePanel(true); // Show vehicle selection panel again
     }
   }
 
@@ -273,12 +275,12 @@ const Home = () => {
       </div>
 
       <div className="h-screen w-screen">
-        {/* <LiveTracking /> */}
-        <img
+        <LiveTracking />
+        {/*<img
           className="h-full w-full object-cover"
           src="https://miro.medium.com/v2/resize:fit:1400/0*gwMx05pqII5hbfmX.gif"
           alt=""
-        />
+        /> */}
       </div>
 
       <div className=" flex flex-col justify-end h-screen absolute top-0 w-full">
@@ -389,7 +391,10 @@ const Home = () => {
           />
         </div>
 
-        <div ref={waitingForDriverRef} className="fixed w-full z-10 bottom-0 bg-white px-3 py-6 pt-12">
+        <div
+          ref={waitingForDriverRef}
+          className="fixed w-full z-10 bottom-0 bg-white px-3 py-6 pt-12"
+        >
           {waitingForDriver && ride && (
             <WaitingForDriver
               ride={ride}

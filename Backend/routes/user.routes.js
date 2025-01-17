@@ -38,5 +38,14 @@ router.get('/logout', authUserMiddleware.authUser, userController.logoutUser);
 
 router.get('/rides', authUserMiddleware.authUser, userController.getRideHistory);
 
+router.post(
+  "/captain-near-user",
+  [
+    body("ltd").isFloat().withMessage("Invalid latitude"),
+    body("lng").isFloat().withMessage("Invalid longitude")
+  ],
+  userController.getAllCaptainsInRadius
+);
+
 
 module.exports = router;
