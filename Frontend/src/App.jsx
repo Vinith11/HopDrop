@@ -1,4 +1,3 @@
-import React from "react";
 import { Route, Routes } from "react-router-dom";
 import UserSignin from "./pages/user/UserSignin";
 import UserSignup from "./pages/user/UserSignup";
@@ -16,6 +15,7 @@ import CaptainRiding from "./pages/CaptainRiding";
 import Payment from "./pages/Payment";
 import CaptainProfile from './pages/CaptainProfile';
 import UserProfile from './pages/UserProfile';
+import AllRidesDetails from "./pages/AllRidesDetails";
 
 const App = () => {
   return (
@@ -78,6 +78,7 @@ const App = () => {
                 </UserProtectWrapper>
             } 
         />
+          <Route path="/user/all-rides" element={<AllRidesDetails />} />
       </Routes>
     </div>
   );
