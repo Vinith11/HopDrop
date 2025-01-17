@@ -1,28 +1,59 @@
-import React, { useContext } from 'react';
-import { UserDataContext } from '../context/UserContext';
-import { useNavigate, Link } from 'react-router-dom';
-import { ChevronRight, Settings, Shield, Bell, Clock, Gift, CreditCard, User, HelpCircle, Star } from 'lucide-react';
+import React, { useContext } from "react";
+import { UserDataContext } from "../context/UserContext";
+import { useNavigate, Link } from "react-router-dom";
+import {
+  ChevronRight,
+  Settings,
+  Shield,
+  Bell,
+  Clock,
+  Gift,
+  CreditCard,
+  User,
+  HelpCircle,
+  Star,
+} from "lucide-react";
 
 const UserProfile = () => {
   const { user } = useContext(UserDataContext);
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/user/signin');
+    localStorage.removeItem("token");
+    navigate("/user/signin");
   };
 
   const menuItems = [
-    { icon: <Shield className="w-6 h-6" />, title: 'Safety', route: '/safety' },
-    { icon: <Gift className="w-6 h-6" />, title: 'Uber Rewards', route: '/rewards' },
-    { icon: <CreditCard className="w-6 h-6" />, title: 'Wallet', route: '/wallet' },
-    { icon: <Clock className="w-6 h-6" />, title: 'Trips', route: '/user/all-rides' },
-    { icon: <Bell className="w-6 h-6" />, title: 'Notifications', route: '/notifications' }
+    { icon: <Shield className="w-6 h-6" />, title: "Safety", route: "/safety" },
+    {
+      icon: <Gift className="w-6 h-6" />,
+      title: "Uber Rewards",
+      route: "/rewards",
+    },
+    {
+      icon: <CreditCard className="w-6 h-6" />,
+      title: "Wallet",
+      route: "/wallet",
+    },
+    {
+      icon: <Clock className="w-6 h-6" />,
+      title: "Trips",
+      route: "/user/all-rides",
+    },
+    {
+      icon: <Bell className="w-6 h-6" />,
+      title: "Notifications",
+      route: "/notifications",
+    },
   ];
 
   const supportItems = [
-    { icon: <HelpCircle className="w-6 h-6" />, title: 'Help', route: '/help' },
-    { icon: <Settings className="w-6 h-6" />, title: 'Settings', route: '/settings' }
+    { icon: <HelpCircle className="w-6 h-6" />, title: "Help", route: "/help" },
+    {
+      icon: <Settings className="w-6 h-6" />,
+      title: "Settings",
+      route: "/settings",
+    },
   ];
 
   return (
@@ -30,6 +61,9 @@ const UserProfile = () => {
       {/* Header */}
       <div className="bg-black text-white px-4 py-6">
         <div className="flex items-center gap-4">
+          <Link to="/home" className="text-white">
+            <ChevronRight className="w-6 h-6 rotate-180" />
+          </Link>
           <div className="relative">
             <div className="w-16 h-16 rounded-full bg-gray-300 overflow-hidden">
               <img
@@ -43,12 +77,7 @@ const UserProfile = () => {
             <h1 className="text-2xl font-semibold capitalize">
               {user.fullname.firstname} {user.fullname.lastname}
             </h1>
-            <div className="flex items-center gap-2 mt-1">
-              <Star className="w-4 h-4" />
-              <span className="text-sm">4.89</span>
-            </div>
           </div>
-          <User className="w-6 h-6" />
         </div>
       </div>
 
